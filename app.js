@@ -6,6 +6,8 @@ var User = require("./models/user").User;
 var cookieSession = require("cookie-session");
 var router_app = require("./routes_app");
 var session_middleware = require("./middlewares/session");
+var formidable = require("express-form-data");
+var os = require("os");
 
 var methodOverride = require("method-override");
 
@@ -28,6 +30,13 @@ app.use(cookieSession({
 	keys: ["llave-1", "llave-2"],
 }));
 
+//Debe ser un almacenamiento TEMPORAL
+var options = {
+	uploadDir: os.tmpdir(),
+	// autoClean: true,
+}
+app.use(formidable.parse(options));
+
 app.set("view engine", "pug");
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,6 +49,7 @@ app.set("view engine", "pug");
 app.route("/")
 	.get(function(req, res){
 		console.log(req.session.user_id);
+		console.log(os.tmpdir());
 		res.render("index");
 	});
 ////////////////////////////////////////////////////////////////////////////////
