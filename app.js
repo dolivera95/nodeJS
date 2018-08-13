@@ -2,12 +2,15 @@
 var express = require("express");
 var bodyParser = require("body-parser");
 var User = require("./models/user").User;
-//var session = require("express-session");
-var cookieSession = require("cookie-session");
+
+var session = require("express-session");
+//var cookieSession = require("cookie-session");
+
 var router_app = require("./routes_app");
 var session_middleware = require("./middlewares/session");
 var formidable = require("express-form-data");
 var os = require("os");
+var RedisStore = require("connect-redis")(session);
 
 var methodOverride = require("method-override");
 
@@ -25,11 +28,22 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(methodOverride("_method"))
 
-app.use(cookieSession({
-	name: "session",
-	keys: ["llave-1", "llave-2"],
-}));
+//app.use(cookieSession({
+//	name: "session",
+//	keys: ["llave-1", "llave-2"],
+//}));
 
+var sessionMiddleware = session({
+	//Incluir el puerto, password cuando se haga a producción. (GITHUB-CONNECT REDIS)
+	store: new RedisStore({}),
+	//Poner un buen secret cuando se suba a producción.
+	secret: "super ultra secret word",
+	resave: false,
+	saveUninitialized: false,
+});
+
+
+app.use(sessionMiddleware);
 //Debe ser un almacenamiento TEMPORAL
 var options = {
 	uploadDir: os.tmpdir(),
@@ -48,7 +62,7 @@ app.set("view engine", "pug");
 ////////////////////////////////////////////////////////////////////////////////
 app.route("/")
 	.get(function(req, res){
-		console.log(req.session.user_id);
+		//console.log(req.session.user_id);
 		console.log(os.tmpdir());
 		res.render("index");
 	});
