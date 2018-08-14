@@ -132,6 +132,22 @@ router.route("/imagenes")
 
 	});
 
-
+router.route("/logout")
+	.get(function(req, res){
+		console.log("El usuario se va a deslogear");
+		console.log(req.session);
+		console.log("////////////////");
+		console.log(req.session.cookie);
+		console.log("////////////////");
+		if(req.session.user_id){
+			req.session.destroy(function(err){
+				if(err){
+					console.log(err);
+				}else{
+					res.redirect("/login");
+				}
+			})
+		}
+	})
 
 module.exports = router;

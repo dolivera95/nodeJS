@@ -24,6 +24,7 @@ module.exports = function(server, sessionMiddleware){
 	});
 
 	io.sockets.on("connection", function(socket){
-		console.log(socket.request.session.user_id);
+		//Cuando hay conexion se escuchará (conexión entre socket.io y express)
+		//console.log(socket.request.session.user_id);
 	})
 }
