@@ -11,10 +11,30 @@ var session_middleware = require("./middlewares/session");
 var formidable = require("express-form-data");
 var os = require("os");
 var RedisStore = require("connect-redis")(session);
+//Socket.io
+var http = require("http");
+var realtime = require("./realtime");
 
 var methodOverride = require("method-override");
 
 var app = express();
+//Servidor para socket.io
+var server = http.Server(app);
+
+//app.use(cookieSession({
+//	name: "session",
+//	keys: ["llave-1", "llave-2"],
+//}));
+var sessionMiddleware = session({
+	//Incluir el puerto, password cuando se haga a producción. (GITHUB-CONNECT REDIS)
+	store: new RedisStore({}),
+	//Poner un buen secret cuando se suba a producción.
+	secret: "super ultra secret word",
+	resave: false,
+	saveUninitialized: false,
+});
+//Socket.io y Express comparten la misma sesión.
+realtime(server, sessionMiddleware);
 
 app.use("/public" ,express.static("public"));
 
@@ -27,21 +47,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 //}));
 
 app.use(methodOverride("_method"))
-
-//app.use(cookieSession({
-//	name: "session",
-//	keys: ["llave-1", "llave-2"],
-//}));
-
-var sessionMiddleware = session({
-	//Incluir el puerto, password cuando se haga a producción. (GITHUB-CONNECT REDIS)
-	store: new RedisStore({}),
-	//Poner un buen secret cuando se suba a producción.
-	secret: "super ultra secret word",
-	resave: false,
-	saveUninitialized: false,
-});
-
 
 app.use(sessionMiddleware);
 //Debe ser un almacenamiento TEMPORAL
@@ -174,4 +179,6 @@ app.route("/sessions")
 app.use("/app", session_middleware);
 app.use("/app", router_app);
 
-app.listen(8080);
+//EN lugar que sea la aplicacion quien reciba las peticiones, sea el servidor quien reciba las peticion, el cual es una instancia de http y no de express
+//app.listen(8080);
+server.listen(8080);

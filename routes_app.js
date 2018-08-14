@@ -4,6 +4,11 @@ var express = require("express");
 var Imagen = require("./models/imagenes");
 var router = express.Router();
 
+//redis (comunicar redis con express)
+var redis = require("redis");
+
+var client = redis.createClient();
+
 var image_finder_middleware = require("./middlewares/find_image");
 
 var fs = require("fs.extra");
@@ -39,6 +44,8 @@ router.get("/imagenes/:id/edit", function(req, res){
 
 router.route("/imagenes/:id")
 	.get(function(req, res){
+		//Cada vez que se visite una imagen, se va a publicar en el canal de images la información de esta imagen y la debería recibir socket.io porque está subscrito a ese mismo canal
+		//client.publish("images", res.locals.imagen.toString());
 		res.render("app/imagenes/show");
 
 	});
@@ -106,6 +113,14 @@ router.route("/imagenes")
 		var imagen = new Imagen(data);
 
 		imagen.save().then(function(imagen_new){
+
+				var imgJSON = {
+					"id": imagen._id,
+					"title": imagen.title,
+					"extension": imagen.extension,
+				};
+
+				client.publish("images", JSON.stringify(imgJSON));
 				fs.copy(req.files.archivo.path, "public/imagenes/"+imagen_new._id+"."+extension);
 				res.redirect("/app/imagenes/" + imagen_new._id);
 		}, function(err){
